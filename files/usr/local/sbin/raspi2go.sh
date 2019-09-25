@@ -90,7 +90,7 @@ create_network() {
   echo RNDIS > "functions/rndis.$NODE/os_desc/interface.rndis/compatible_id"
   echo 5162001 > "functions/rndis.$NODE/os_desc/interface.rndis/sub_compatible_id"
 
-  ln -s "functions/rndis.$NODE configs/c.$C/"
+  ln -s "functions/rndis.$NODE" "configs/c.$C/"
 }
 
 # --- create keyboard (Human Interface Device: HID) gadget   -----------------
