@@ -1,0 +1,104 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# This script installs files and services specific to this project.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/raspi2go
+#
+# --------------------------------------------------------------------------
+
+PACKAGES=""
+PROJECT="raspi2go"
+
+# --- basic packages   ------------------------------------------------------
+
+check_packages() {
+  local p
+  for p in "$@"; do
+    echo -en "Checking $p ... " >&2
+    dpkg -s "$p" 2>/dev/null | grep -q "Status.*ok" || return 0
+    echo "ok" >&2
+  done
+  return 1
+}
+
+get_new_packages() {
+  local p packages
+  for p in "$@"; do
+    echo -en "Checking $p ... " >&2
+    if dpkg -s "$p" 2>/dev/null | grep -q "Status.*ok"; then
+      echo "ok" >&2
+    else
+      echo "not installed" >&2
+      packages+=" $p"
+    fi
+  done
+  echo "$packages"
+}
+
+install_packages() {
+  new_packages=$(get_new_packages $PACKAGES)
+  if [ -n "$new_packages" ]; then
+    echo -e "[INFO] installing additional packages" 2>&1
+    apt-get update
+    apt-get -y --no-upgrade install $new_packages
+  fi
+}
+
+# --- install specific files   ----------------------------------------------
+
+install_files() {
+  echo -e "[INFO] installing project files" 2>&1
+
+  if [ -f "/etc/${PROJECT}.conf" ]; then
+    # save current configuration
+    mv "/etc/${PROJECT}.conf" "/etc/${PROJECT}.conf.$rand"
+  fi
+
+  for f in `find $(dirname "$0")/../files/ -type f -not -name "*.pyc"`; do
+    target="${f#*files}"
+    target_dir="${target%/*}"
+    [ ! -d "$target_dir" ] && mkdir -p "$target_dir"
+    cp "$f" "$target"
+    chown root:root "$target"
+  done
+
+  chmod 755 "/usr/local/sbin/${PROJECT}.sh"
+
+  # restore old configuration
+  if [ -f "/etc/${PROJECT}.conf.$rand" ]; then
+    mv -f "/etc/${PROJECT}.conf" "/etc/${PROJECT}.conf.new"
+    mv "/etc/${PROJECT}.conf.$rand" "/etc/${PROJECT}.conf"
+    echo -e "[INFO] new version of configuration file saved to: /etc/${PROJECT}.conf.new" 2>&1
+  fi
+}
+
+# --- configure system   ----------------------------------------------------
+
+configure_system() {
+  # update /boot/config.txt for dw2
+  if ! grep -q "^dtoverlay=dwc2" /boot/config.txt ; then
+    echo -e "[INFO] configuring dw2 in /boot/config.txt" 2>&1
+    echo -e "[INFO] note: reboot required!" 2>&1
+    echo "dtoverlay=dwc2" >> /boot/config.txt
+  fi
+}
+
+# --- activate service   ----------------------------------------------------
+
+enable_services() {
+  echo -e "[INFO] enabeling ${PROJECT}.service" 2>&1
+  systemctl enable "${PROJECT}.service"
+}
+
+# --- main program   --------------------------------------------------------
+
+install_packages
+
+install_files
+configure_system
+enable_services
+
+echo "[INFO] installation completed"
