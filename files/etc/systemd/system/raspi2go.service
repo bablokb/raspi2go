@@ -1,0 +1,23 @@
+# --------------------------------------------------------------------------
+# Systemd service Definition for raspi2go.service.
+#
+# The service starts the script /usr/local/sbin/raspi2go.sh
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/raspi2go.sh
+#
+# --------------------------------------------------------------------------
+
+[Unit]
+Description=Create USB-Gadget configuration
+After=systemd-modules-load.service
+ 
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/sbin/raspi2go.sh
+
+[Install]
+WantedBy=sysinit.target
