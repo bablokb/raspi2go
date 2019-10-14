@@ -64,7 +64,6 @@ create_storage() {
   fi
 
   # configure gadget
-  cd "$USBCONF_DIR"
   mkdir -p "functions/mass_storage.$NODE"
   echo 1 > "functions/mass_storage.$NODE/stall"
   echo 0 > "functions/mass_storage.$NODE/lun.0/cdrom"
@@ -96,7 +95,6 @@ create_network() {
 # --- create keyboard (Human Interface Device: HID) gadget   -----------------
 
 create_hid() {
-  cd "$USBCONF_DIR"
   mkdir -p functions/hid.$NODE
 
   echo 1 > "functions/hid.$NODE/protocol"
