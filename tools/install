@@ -52,6 +52,7 @@ install_packages() {
 install_files() {
   echo -e "[INFO] installing project files" 2>&1
 
+  rand="$RANDOM"
   if [ -f "/etc/${PROJECT}.conf" ]; then
     # save current configuration
     mv "/etc/${PROJECT}.conf" "/etc/${PROJECT}.conf.$rand"
